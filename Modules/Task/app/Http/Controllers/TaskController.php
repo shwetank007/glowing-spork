@@ -14,8 +14,37 @@ use DB;
 
 class TaskController extends Controller
 {
-    public function listing() {
+    public function listing(Request $request) {
+        if(!is_null($request->filter)) {
+            $status = array_key_exists("status", $request->filter) ? $request->filter["status"] : [];
+            $due_date = array_key_exists("due_date", $request->filter) ? $request->filter["due_date"] : [];
+            $priority = array_key_exists("priority", $request->filter) ? $request->filter["priority"] : [];
+            $notes = array_key_exists("notes", $request->filter) ? $request->filter["notes"] : [];
 
+            $tasks = Task::with('note')
+                ->withCount('note')
+                ->where('status', $status)
+                ->where('due_date', '=', $due_date)
+                ->where('priority', '=', $priority)
+                ->having('note_count', '=', $notes)
+                ->orderBy('note_count', 'desc')
+                ->orderByRaw("FIELD(priority, 'High', 'Medium', 'Low')")
+                ->get();
+        } else {
+            $tasks = Task::with('note')
+                ->withCount('note')
+                ->orderBy('note_count', 'desc')
+                ->orderByRaw("FIELD(priority, 'High', 'Medium', 'Low')")
+                ->get();
+        }
+
+        $response = [
+            'status' => 'success',
+            'message' => 'Task is created successfully.',
+            'data'  => $tasks
+        ];
+        
+        return response()->json($response, 201);
     }
 
     public function store(Request $request) {

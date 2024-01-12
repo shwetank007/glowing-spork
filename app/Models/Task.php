@@ -14,6 +14,6 @@ class Task extends Model
     protected $fillable = ['subject', 'description', 'start_date', 'due_date', 'status', 'priority'];
 
     public function note() {
-        return $this->hasMany('App\Models\Note', 'task_id', 'id')->select(array('notes.id', 'notes.subject', 'notes.note', 'notes.attachment'));
+        return $this->hasMany('App\Models\Note', 'task_id', 'id');
     }
 }
