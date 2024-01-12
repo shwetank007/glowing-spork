@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Modules\Task\app\Http\Controllers\TaskController;
 
 /*
     |--------------------------------------------------------------------------
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Route;
     |
 */
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->name('api.')->group(function () {
-    Route::get('task', fn (Request $request) => $request->user())->name('task');
+// Protected routes of task
+Route::middleware('auth:sanctum')->prefix('v1/task')->group( function () {
+    Route::get('/listing', [TaskController::class, 'listing']);
+    Route::post('/save', [TaskController::class, 'store']);
 });

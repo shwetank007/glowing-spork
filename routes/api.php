@@ -22,7 +22,7 @@ Route::controller(LoginRegisterController::class)->prefix('v1')->group(function(
     Route::post('/login', 'login');
 });
 
-// Protected routes of product and logout
+// Protected routes of logout
 Route::middleware('auth:sanctum')->prefix('v1')->group( function () {
     Route::post('/logout', [LoginRegisterController::class, 'logout']);
 });

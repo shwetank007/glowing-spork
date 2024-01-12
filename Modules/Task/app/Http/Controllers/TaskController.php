@@ -6,62 +6,74 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use App\Models\Task;
+use App\Models\Note;
+use Validator;
 
 class TaskController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('task::index');
+    public function listing() {
+
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('task::create');
-    }
+    public function store(Request $request) {
+        $validate = Validator::make($request->all(), [
+            'subject' => 'required',
+            'description' => 'required',
+            'start_date' => 'required|date',
+            'due_date' => 'required|date',
+            'status' => 'required',
+            'note' => 'required|array',
+        ]);
+        
+        if($validate->fails()){
+            return response()->json([
+                'status' => 'failed',
+                'message' => 'Validation Error!',
+                'data' => $validate->errors(),
+            ], 403);
+        }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): RedirectResponse
-    {
-        //
-    }
+        $task = new Task();
+        $task->subject = $request->subject;
+        $task->description = $request->description;
+        $task->start_date = $request->start_date;
+        $task->due_date = $request->due_date;
+        $task->status = $request->status;
+        $task->save();
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('task::show');
-    }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('task::edit');
-    }
+        foreach($request->note as $note) {
+            $notes = new Note();
+            $notes->subject = $note["subject"];
+            $notes->note = $note["note"];
+            
+            $file = [];
+            if(!is_null($note["attachment"])) {
+                foreach($note["attachment"] as $attachment) {
+                    if(file_exists($attachment)) {
+                        $fileName = time().'_'.$attachment->getClientOriginalName();
+                        $filePath = $attachment->storeAs('uploads', $fileName, 'public');
+                        $file_path = '/storage/' . $filePath;
+                        $fileArray = [
+                            "file_name" => $fileName,
+                            "file_path" => $file_path
+                        ];
+                        array_push($file, $fileArray);
+                    }
+                }
+            }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id): RedirectResponse
-    {
-        //
-    }
+            $notes->attachment = $file;
+            $notes->task_id = $task->id;
+            $notes->save();
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
-    {
-        //
+        $response = [
+            'status' => 'success',
+            'message' => 'Task is created successfully.',
+        ];
+        
+        return response()->json($response, 201);
     }
 }

@@ -11,5 +11,9 @@ class Note extends Model
 
     protected $table = 'notes';
 
-    protected $fillable = ['subject', 'note', 'task_id'];
+    protected $fillable = ['subject', 'note', 'task_id', 'attachment'];
+
+    protected $casts = [
+        'attachment' => 'array',
+    ];
 }
